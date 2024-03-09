@@ -245,7 +245,7 @@ export default function MapaScreen({ navigation }) {
                             backgroundColor: '#F3F4F8', marginBottom: 15
                         }}>
                             <Ionicons name="chevron-back" size={27} color="black" onPress={() => setSearchActive(false)} />
-                            <TextInput onChangeText={(value) => getSites(value)} style={{ width: '85%', fontSize: 17, padding: 5, paddingVertical: 15, paddingLeft: 10 }} placeholder='Av.' />
+                            <TextInput onChangeText={(value) => getSites(value)} style={{ width: '85%', fontSize: 17, padding: 5, paddingVertical: 15, paddingLeft: 10 }} placeholder='Av.' placeholderTextColor={'#727377'} />
                             <Feather name="search" size={24} color="black" />
                         </View>
                         {
