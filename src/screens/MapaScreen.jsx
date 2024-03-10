@@ -10,9 +10,17 @@ import axios from 'axios'
 import { CONFIG } from '../../config'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as Notifications from 'expo-notifications';
+import { RewardedAd, RewardedAdEventType, TestIds } from 'react-native-google-mobile-ads';
+
+const adUnitId = __DEV__ ? TestIds.REWARDED : 'ca-app-pub-7986550598269480~7377300632';
+const rewarded = RewardedAd.createForAdRequest(adUnitId, {
+    keywords: ['fashion', 'clothing'],
+});
+
 
 export default function MapaScreen({ navigation }) {
 
+    const [loaded, setLoaded] = useState(false);
     const [searchActive, setSearchActive] = useState(false);
     const { setProgramado, destination, setDestination, setInitialPosition, radio, ruta, setRadio, setRuta, position, setPosition, region, setLlego, setRegion } = useContext(MainContext);
     const [results, setResults] = useState([])
@@ -61,8 +69,25 @@ export default function MapaScreen({ navigation }) {
         setLlego(false);
         getRecientes();
         registerForPushNotificationsAsync();
+
+        const unsubscribeLoaded = rewarded.addAdEventListener(RewardedAdEventType.LOADED, () => {
+            setLoaded(true);
+        });
+        const unsubscribeEarned = rewarded.addAdEventListener(
+            RewardedAdEventType.EARNED_REWARD,
+            reward => {
+                executeTrip();
+            },
+        );
+        rewarded.load();
+        return () => {
+            unsubscribeLoaded();
+            unsubscribeEarned();
+        };
+
     }, []);
 
+ 
     const getRecientes = async () => {
         const arr = await AsyncStorage.getItem('places');
         if (arr) {
@@ -160,6 +185,9 @@ export default function MapaScreen({ navigation }) {
             longitudeDelta: 0.004,
         });
     }
+    if (!loaded) {
+        return null;
+    }
 
     if (!position) {
         return (
@@ -229,7 +257,9 @@ export default function MapaScreen({ navigation }) {
                             />
                             <Text style={{ color: 'white', textAlign: 'center', fontSize: 15 }}>{(radio).toFixed(0)} m</Text>
                             <TouchableOpacity
-                                onPress={() => executeTrip()}
+                                onPress={() => {
+                                    rewarded.show();
+                                }}
                                 style={{ marginTop: 40, backgroundColor: '#32CCFE', paddingVertical: 20, borderRadius: 30 }}>
                                 <Text style={{ textAlign: 'center', fontSize: 16, fontWeight: 'bold' }}>Programar ruta</Text>
                             </TouchableOpacity>

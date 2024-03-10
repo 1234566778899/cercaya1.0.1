@@ -5,14 +5,6 @@ import { FontAwesome, FontAwesome5, MaterialCommunityIcons, MaterialIcons } from
 import { MainContext } from '../contexts/MainScreen';
 import { getDistance } from 'geolib';
 import * as Notifications from 'expo-notifications';
-import { RewardedAd, TestIds } from 'react-native-google-mobile-ads';
-
-const adUnitId = __DEV__ ? TestIds.REWARDED : 'ca-app-pub-xxxxxxxxxxxxx/yyyyyyyyyyyyyy';
-
-const rewarded = RewardedAd.createForAdRequest(adUnitId, {
-  keywords: ['fashion', 'clothing'],
-});
-
 
 export default function HomeScreen({ navigation }) {
     const { destination, position, initialPosition, setDestination, radio, ruta, programado, setProgramado } = useContext(MainContext);
@@ -77,7 +69,6 @@ export default function HomeScreen({ navigation }) {
                 )
             }
             {
-                
                 !programado && (
                     <View style={{ paddingHorizontal: 5, marginTop: 20, alignItems: 'center', marginTop: 60 }}>
                         <MaterialIcons name="card-travel" size={35} color="white" />
