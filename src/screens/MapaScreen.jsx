@@ -1,6 +1,6 @@
 import { View, Text, TextInput, Image, TouchableOpacity, ImageBackground } from 'react-native'
 import React, { useContext, useEffect, useState } from 'react'
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps'
+import MapView, { Circle, Marker, PROVIDER_GOOGLE } from 'react-native-maps'
 import { customMapStyle } from '../utils/CustomStyle'
 import { Feather, FontAwesome, FontAwesome5, Ionicons } from '@expo/vector-icons'
 import * as Location from 'expo-location';
@@ -160,6 +160,7 @@ export default function MapaScreen({ navigation }) {
             longitudeDelta: 0.004,
         });
     }
+    const [circle, setcircle] = useState(50);
 
     if (!position) {
         return (
@@ -175,19 +176,29 @@ export default function MapaScreen({ navigation }) {
                 provider={PROVIDER_GOOGLE}
                 customMapStyle={customMapStyle}
             >
-                <Marker coordinate={position && position.latitude && position.longitude ? position : null}>
+                <Marker coordinate={position}>
                     <Image source={require('../assets/punto.png')} style={{ width: 50, height: 50 }} />
                 </Marker>
-                {
-                    destination && destination.latitude && destination.longitude && (
-                        <Marker coordinate={destination}>
-                            <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-                                <ImageBackground style={{ width: 50, height: 50 }} source={require('../assets/parent.png')}></ImageBackground>
-                                <Image source={require('../assets/child.png')} style={{ width: 15, height: 15, position: 'absolute' }} />
-                            </View>
-                        </Marker>
-                    )
-                }
+                {destination && (
+                    <Circle
+                        key={radio}
+                        center={destination}
+                        radius={radio}
+                        strokeWidth={0}
+                        fillColor={'rgba(250,89,89,0.27)'}
+                    >
+                    </Circle>
+                )}
+                {destination && (
+                    <Circle
+                        center={destination}
+                        radius={10}
+                        strokeWidth={1}
+                        fillColor={'#F95555'}
+                        strokeColor={'#fff'}
+                    >
+                    </Circle>
+                )}
             </MapView>
             <View style={{
                 backgroundColor: '#202125', position: 'absolute', width: '100%', paddingVertical: 30,
