@@ -10,17 +10,11 @@ import axios from 'axios'
 import { CONFIG } from '../../config'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as Notifications from 'expo-notifications';
-import { RewardedAd, RewardedAdEventType, TestIds } from 'react-native-google-mobile-ads';
-
-const adUnitId = __DEV__ ? TestIds.REWARDED : 'ca-app-pub-7986550598269480~7377300632';
-const rewarded = RewardedAd.createForAdRequest(adUnitId, {
-    keywords: ['fashion', 'clothing'],
-});
-
+import { useInterstitialAd, TestIds } from 'react-native-google-mobile-ads';
 
 export default function MapaScreen({ navigation }) {
 
-    const [loaded, setLoaded] = useState(false);
+    const { isLoaded, isClosed, load, show } = useInterstitialAd('ca-app-pub-7986550598269480~7377300632');
     const [searchActive, setSearchActive] = useState(false);
     const { setProgramado, destination, setDestination, setInitialPosition, radio, ruta, setRadio, setRuta, position, setPosition, region, setLlego, setRegion } = useContext(MainContext);
     const [results, setResults] = useState([])
@@ -69,25 +63,18 @@ export default function MapaScreen({ navigation }) {
         setLlego(false);
         getRecientes();
         registerForPushNotificationsAsync();
-
-        const unsubscribeLoaded = rewarded.addAdEventListener(RewardedAdEventType.LOADED, () => {
-            setLoaded(true);
-        });
-        const unsubscribeEarned = rewarded.addAdEventListener(
-            RewardedAdEventType.EARNED_REWARD,
-            reward => {
-                executeTrip();
-            },
-        );
-        rewarded.load();
-        return () => {
-            unsubscribeLoaded();
-            unsubscribeEarned();
-        };
-
     }, []);
 
- 
+    useEffect(() => {
+        load();
+    }, [load]);
+
+    useEffect(() => {
+        if (isClosed) {
+            executeTrip();
+        }
+    }, [isClosed, navigation]);
+
     const getRecientes = async () => {
         const arr = await AsyncStorage.getItem('places');
         if (arr) {
@@ -98,7 +85,7 @@ export default function MapaScreen({ navigation }) {
         let aux = [place, ...recientes].slice(0, 5);
         await AsyncStorage.setItem('places', JSON.stringify(aux));
     }
-    const startTravel = async () => {
+    const executeTrip = async () => {
         const hasForegroundPermissions = await requestForegroundPermissions();
         if (!hasForegroundPermissions) return;
 
@@ -119,11 +106,6 @@ export default function MapaScreen({ navigation }) {
             Alert.alert('Error', 'Hubo un error al iniciar el viaje. Por favor, inténtalo de nuevo.');
         }
     }
-    const executeTrip = () => {
-
-        startTravel();
-
-    };
 
     getSites = (value) => {
         if (value == "" || value.trim() == "" || value == null) return;
@@ -184,9 +166,6 @@ export default function MapaScreen({ navigation }) {
             latitudeDelta: 0.008,
             longitudeDelta: 0.004,
         });
-    }
-    if (!loaded) {
-        return null;
     }
 
     if (!position) {
@@ -258,7 +237,11 @@ export default function MapaScreen({ navigation }) {
                             <Text style={{ color: 'white', textAlign: 'center', fontSize: 15 }}>{(radio).toFixed(0)} m</Text>
                             <TouchableOpacity
                                 onPress={() => {
-                                    rewarded.show();
+                                    if (isLoaded) {
+                                        show();
+                                    } else {
+                                        executeTrip();
+                                    }
                                 }}
                                 style={{ marginTop: 40, backgroundColor: '#32CCFE', paddingVertical: 20, borderRadius: 30 }}>
                                 <Text style={{ textAlign: 'center', fontSize: 16, fontWeight: 'bold' }}>Programar ruta</Text>

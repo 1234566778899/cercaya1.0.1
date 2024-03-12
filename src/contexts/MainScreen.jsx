@@ -3,6 +3,13 @@ import * as TaskManager from 'expo-task-manager';
 import { getDistance } from 'geolib';
 import { Vibration } from 'react-native';
 import * as Notifications from 'expo-notifications';
+import mobileAds from 'react-native-google-mobile-ads';
+
+mobileAds()
+  .initialize()
+  .then(adapterStatuses => {
+
+  });
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
