@@ -1,4 +1,4 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native'
+import { View, Text, Image, TouchableOpacity, Alert } from 'react-native'
 import React, { useContext, useEffect } from 'react'
 import MapView, { Circle, Marker, PROVIDER_GOOGLE } from 'react-native-maps'
 import { customMapStyle } from '../utils/CustomStyle'
@@ -47,10 +47,28 @@ export default function MapaScreen({ navigation }) {
             navigation.goBack();
         }
     }
+    const requestPermissions = async () => {
+        Alert.alert(
+            "Permiso de Ubicación Requerido",
+            "Nuestra aplicación necesita acceso a tu ubicación para proporcionar navegación en tiempo real y alertas de proximidad. ¿Deseas continuar?",
+            [
+                {
+                    text: "No",
+                    onPress: () => navigation.goBack(),
+                    style: "cancel"
+                },
+                {
+                    text: "Sí", onPress: () => {
+                        requestForegroundPermissions();
+                        requestBackgroundPermissions();
+                        getPosition();
+                    }
+                }
+            ]
+        );
+    };
     useEffect(() => {
-        requestForegroundPermissions();
-        requestBackgroundPermissions();
-        getPosition();
+        requestPermissions();
         setDestination(null);
         setLlego(false);
         registerForPushNotificationsAsync();

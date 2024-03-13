@@ -1,12 +1,29 @@
 import { View, Text, TouchableOpacity, Vibration } from 'react-native'
-import React, { useContext, useEffect } from 'react'
+import React, { useContext, useEffect, useLayoutEffect } from 'react'
 import * as TaskManager from 'expo-task-manager';
 import { FontAwesome, FontAwesome5, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { MainContext } from '../contexts/MainScreen';
 import { getDistance } from 'geolib';
 import * as Notifications from 'expo-notifications';
+import { useNavigation } from '@react-navigation/native';
 
-export default function HomeScreen({ navigation }) {
+const HomeScreen = ({ navigation }) => {
+
+    const navigate = useNavigation();
+
+    useLayoutEffect(() => {
+        navigate.setOptions({
+            headerRight: () => (
+                <TouchableOpacity
+                    onPress={() => navigate.navigate('policy')}
+                    style={{ flexDirection: 'row', alignItems: 'center', marginRight: 10 }}>
+                    <MaterialIcons name="policy" size={24} color="black" />
+                    <Text style={{ color: 'black', fontSize: 15, marginLeft: 5 }}>Política de privacidad</Text>
+                </TouchableOpacity>
+            ),
+        });
+    }, [navigate]);
+
     const { destination, position, initialPosition, setDestination, radio, ruta, programado, setProgramado } = useContext(MainContext);
     const stopTrip = async () => {
         Vibration.cancel();
@@ -77,6 +94,7 @@ export default function HomeScreen({ navigation }) {
                     </View>
                 )
             }
+
             <View style={{ alignItems: 'center', position: 'absolute', bottom: 20, width: '100%', paddingHorizontal: 10 }}>
                 {
                     !programado && (
@@ -98,3 +116,6 @@ export default function HomeScreen({ navigation }) {
         </View>
     )
 }
+
+
+export default HomeScreen;
