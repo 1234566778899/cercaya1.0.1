@@ -32,7 +32,7 @@ export default function HomeScreen({ navigation }) {
             stopTrip();
         }
     };
-    
+
     return (
         <View style={{ flex: 1, backgroundColor: '#1B1C20' }}>
             {
@@ -60,9 +60,9 @@ export default function HomeScreen({ navigation }) {
                             <View
                                 style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 50 }}>
                                 <MaterialCommunityIcons name="bell-alert-outline" size={24} color="#32CCFE" />
-                                <Text style={{ color: 'white', textAlign: 'center', marginLeft: 10 }}>Se enviará una alerta cuando falten
+                                <Text style={{ color: 'white', textAlign: 'center', marginLeft: 10 }}>Te notificaremos cuando estés
                                     <Text style={{ fontWeight: 'bold' }}> {radio.toFixed(0)} m </Text>
-                                    de su destino</Text>
+                                    del destino</Text>
                             </View>
                         </View>
                     </View>
@@ -73,17 +73,17 @@ export default function HomeScreen({ navigation }) {
                     <View style={{ paddingHorizontal: 5, marginTop: 20, alignItems: 'center', marginTop: 60 }}>
                         <MaterialIcons name="card-travel" size={35} color="white" />
                         <Text
-                            style={{ textAlign: 'center', color: 'white', marginTop: 20, fontWeight: 'bold' }}>Agrega un destino y disfruta de tu viaje</Text>
+                            style={{ textAlign: 'center', color: 'white', marginTop: 20, fontWeight: 'bold' }}>¿Listo para tu próxima aventura? Añade un destino ahora</Text>
                     </View>
                 )
             }
             <View style={{ alignItems: 'center', position: 'absolute', bottom: 20, width: '100%', paddingHorizontal: 10 }}>
                 {
                     !programado && (
-                        <TouchableOpacity
-                            onPress={() => navigation.navigate('mapa')}
-                            style={{ width: 60, height: 60, borderRadius: 60, backgroundColor: '#32CCFE', alignItems: 'center', justifyContent: 'center' }}>
-                            <Text style={{ fontSize: 30 }}>+</Text>
+                        <TouchableOpacity style={{ backgroundColor: '#32CCFE', width: '100%', paddingVertical: 15, borderRadius: 30 }} onPress={() => navigation.navigate('mapa')} >
+                            <Text style={{ fontSize: 15, textAlign: 'center', fontWeight: 'bold' }}>
+                                Toca para agregar destino
+                            </Text>
                         </TouchableOpacity>
                     )
                 }

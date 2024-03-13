@@ -1,22 +1,16 @@
-import { View, Text, TextInput, Image, TouchableOpacity, ImageBackground } from 'react-native'
-import React, { useContext, useEffect, useState } from 'react'
+import { View, Text, Image, TouchableOpacity } from 'react-native'
+import React, { useContext, useEffect } from 'react'
 import MapView, { Circle, Marker, PROVIDER_GOOGLE } from 'react-native-maps'
 import { customMapStyle } from '../utils/CustomStyle'
-import { Feather, FontAwesome, FontAwesome5, Ionicons } from '@expo/vector-icons'
+import { Feather, FontAwesome, } from '@expo/vector-icons'
 import * as Location from 'expo-location';
 import Slider from '@react-native-community/slider';
 import { MainContext } from '../contexts/MainScreen'
-import axios from 'axios'
-import { CONFIG } from '../../config'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as Notifications from 'expo-notifications';
 
 export default function MapaScreen({ navigation }) {
 
-    const [searchActive, setSearchActive] = useState(false);
-    const { setProgramado, destination, setDestination, setInitialPosition, radio, ruta, setRadio, setRuta, position, setPosition, region, setLlego, setRegion } = useContext(MainContext);
-    const [results, setResults] = useState([])
-    const [recientes, setRecientes] = useState([]);
+    const { setProgramado, destination, setDestination, setInitialPosition, radio, ruta, setRadio, position, setPosition, region, setLlego, setRegion } = useContext(MainContext);
 
     const requestForegroundPermissions = async () => {
         const { status } = await Location.requestForegroundPermissionsAsync();
@@ -59,19 +53,21 @@ export default function MapaScreen({ navigation }) {
         getPosition();
         setDestination(null);
         setLlego(false);
-        getRecientes();
         registerForPushNotificationsAsync();
     }, []);
 
-    const getRecientes = async () => {
-        const arr = await AsyncStorage.getItem('places');
-        if (arr) {
-            setRecientes(JSON.parse(arr));
-        }
-    }
-    const saveReciente = async (place) => {
-        let aux = [place, ...recientes].slice(0, 5);
-        await AsyncStorage.setItem('places', JSON.stringify(aux));
+    useEffect(() => {
+        changeRegion();
+    }, [radio]);
+
+    const changeRegion = () => {
+        const baseDelta = 0.005; // Valor base para deltas
+        const factor = Math.log10(radio + 1); // Uso de logaritmo para suavizar el crecimiento
+        setRegion(rgn => ({
+            ...rgn,
+            latitudeDelta: baseDelta * factor,
+            longitudeDelta: baseDelta * factor
+        }));
     }
     const startTravel = async () => {
         const hasForegroundPermissions = await requestForegroundPermissions();
@@ -99,68 +95,6 @@ export default function MapaScreen({ navigation }) {
         startTravel();
 
     };
-
-    getSites = (value) => {
-        if (value == "" || value.trim() == "" || value == null) return;
-
-        const requestData = {
-            input: value,
-            locationBias: {
-                circle: {
-                    center: position,
-                    radius: 20000.0
-                }
-            },
-            languageCode: 'es'
-        };
-
-        const headers = {
-            'Content-Type': 'application/json',
-            'X-Goog-Api-Key': CONFIG.apiKey
-        };
-
-        axios.post(CONFIG.uriMap, requestData, { headers })
-            .then(response => {
-                setResults(response.data.suggestions);
-            })
-            .catch(error => {
-                console.error('Error en la solicitud:', error.response.status);
-                console.error(error.response.data);
-            });
-    }
-    const positionDestination = (value) => {
-        axios.get(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${value.placePrediction.placeId}&key=${CONFIG.apiKey}`)
-            .then(response => {
-                const { name, formatted_address, geometry } = response.data.result;
-                const { lat, lng } = geometry.location;
-                setDestination({ longitude: lng, latitude: lat });
-                setSearchActive(false);
-                setRuta({ latitude: lat, longitude: lng, name, address: formatted_address });
-                saveReciente({ latitude: lat, longitude: lng, name, address: formatted_address });
-                setRegion({
-                    latitude: lat - 0.002,
-                    longitude: lng,
-                    latitudeDelta: 0.008,
-                    longitudeDelta: 0.004,
-                });
-            })
-            .catch(error => {
-                console.log(error);
-            })
-    }
-    const positionSaved = (place) => {
-        const { latitude, longitude, name, address } = place;
-        setDestination({ longitude, latitude });
-        setSearchActive(false);
-        setRuta({ latitude, longitude, name, address });
-        setRegion({
-            latitude: latitude - 0.002,
-            longitude: longitude,
-            latitudeDelta: 0.008,
-            longitudeDelta: 0.004,
-        });
-    }
-    const [circle, setcircle] = useState(50);
 
     if (!position) {
         return (
@@ -207,7 +141,7 @@ export default function MapaScreen({ navigation }) {
             }}>
                 {
                     !destination && (
-                        <TouchableOpacity onPress={() => setSearchActive(true)}>
+                        <TouchableOpacity onPress={() => navigation.navigate('search')}>
                             <View style={{
                                 flexDirection: 'row', alignItems: 'center',
                                 backgroundColor: '#3C4043', paddingHorizontal: 20, paddingVertical: 15, borderRadius: 20
@@ -248,51 +182,6 @@ export default function MapaScreen({ navigation }) {
                     )
                 }
             </View>
-            {
-                searchActive && (
-                    <View style={{ flex: 1, position: 'absolute', backgroundColor: 'white', height: '100%', width: '100%', paddingHorizontal: 10 }}>
-                        <View style={{
-                            flexDirection: 'row', padding: 13, paddingVertical: 5, marginTop: 10, borderRadius: 35, alignItems: 'center',
-                            backgroundColor: '#F3F4F8', marginBottom: 15
-                        }}>
-                            <Ionicons name="chevron-back" size={27} color="black" onPress={() => setSearchActive(false)} />
-                            <TextInput onChangeText={(value) => getSites(value)} style={{ width: '85%', fontSize: 17, padding: 5, paddingVertical: 15, paddingLeft: 10 }} placeholder='Av.' placeholderTextColor={'#727377'} />
-                            <Feather name="search" size={24} color="black" />
-                        </View>
-                        {
-                            results.length > 0 && results.map((x, index) => (
-                                <TouchableOpacity key={index}
-                                    onPress={() => positionDestination(x)}
-                                    style={{
-                                        flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 25, borderBottomWidth: 1, borderBottomColor: '#EEEEEE'
-                                    }}>
-                                    <FontAwesome5 name="map-marker-alt" size={24} color="black" />
-                                    <Text style={{ marginLeft: 20 }} numberOfLines={1}>{x.placePrediction.text.text}</Text>
-                                </TouchableOpacity>
-                            ))
-                        }
-                        {
-                            results.length == 0 && recientes.length > 0 && (
-                                <View>
-                                    <Text style={{ fontSize: 16, marginTop: 10, marginLeft: 10, fontWeight: 'bold' }}>Recientes</Text>
-                                    {
-                                        recientes.map((x, index) => (
-                                            <TouchableOpacity key={index}
-                                                onPress={() => positionSaved(x)}
-                                                style={{
-                                                    flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 25, borderBottomWidth: 1, borderBottomColor: '#EEEEEE'
-                                                }}>
-                                                <FontAwesome5 name="map-marker-alt" size={24} color="black" />
-                                                <Text style={{ marginLeft: 20 }} numberOfLines={1}>{x.name}</Text>
-                                            </TouchableOpacity>
-                                        ))
-                                    }
-                                </View>
-                            )
-                        }
-                    </View>
-                )
-            }
         </View>
     )
 }
