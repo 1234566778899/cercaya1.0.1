@@ -1,5 +1,5 @@
 import { View, Text, Image, TouchableOpacity, Alert } from 'react-native'
-import React, { useContext, useEffect } from 'react'
+import React, { useContext, useEffect, useLayoutEffect } from 'react'
 import MapView, { Circle, Marker, PROVIDER_GOOGLE } from 'react-native-maps'
 import { customMapStyle } from '../utils/CustomStyle'
 import { Feather, FontAwesome, } from '@expo/vector-icons'
@@ -8,12 +8,26 @@ import Slider from '@react-native-community/slider';
 import { MainContext } from '../contexts/MainScreen'
 import * as Notifications from 'expo-notifications';
 import { useRewardedAd } from 'react-native-google-mobile-ads'
+import { getDistance } from 'geolib'
+import { useNavigation } from '@react-navigation/native'
 
 export default function MapaScreen({ navigation }) {
 
     const { isLoaded, isClosed, load, show } = useRewardedAd('ca-app-pub-7986550598269480~7377300632');
     const { setProgramado, destination, setDestination, setInitialPosition, radio, ruta, setRadio, position, setPosition, region, setLlego, setRegion } = useContext(MainContext);
+    const navigate = useNavigation();
 
+    useLayoutEffect(() => {
+        navigate.setOptions({
+            headerRight: () => (
+                destination && <TouchableOpacity
+                    onPress={() => navigate.navigate('search')}
+                    style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#E8F0FE', borderRadius: 5, marginRight: 5, paddingVertical: 10, paddingHorizontal: 20 }}>
+                    <Text style={{ color: 'black', fontSize: 15, color: '#2972D5', fontWeight: 'bold', marginLeft: 5 }}>Cancelar</Text>
+                </TouchableOpacity>
+            ),
+        });
+    }, [destination]);
     const requestForegroundPermissions = async () => {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
@@ -97,7 +111,7 @@ export default function MapaScreen({ navigation }) {
         if (!hasBackgroundPermissions) return;
 
         const taskName = 'background-location-task';
-
+        if (getDistance(position, destination) <= radio) return alert('Usted se encuentra en el radio de su destino');
         try {
             await Location.startLocationUpdatesAsync(taskName, {
                 accuracy: Location.Accuracy.BestForNavigation,
@@ -159,7 +173,7 @@ export default function MapaScreen({ navigation }) {
                 )}
             </MapView>
             <View style={{
-                backgroundColor: '#202125', position: 'absolute', width: '100%', paddingVertical: 30,
+                backgroundColor: '#202125', position: 'absolute', zIndex: 2, width: '100%', paddingVertical: 30,
                 bottom: 0, paddingHorizontal: 10,
                 borderTopRightRadius: 20, borderTopLeftRadius: 20
             }}>
@@ -188,6 +202,8 @@ export default function MapaScreen({ navigation }) {
                             <Text style={{ color: '#BFC1C5', fontWeight: 'bold', marginTop: 5 }}>{ruta ? ruta.address : ''}</Text>
                             <Text style={{ marginTop: 40, fontSize: 20, color: 'white' }}>Distancia de aviso</Text>
                             <Slider
+                                accessibilityLabel="Seleccionar distancia de aviso"
+                                accessibilityHint="Ajusta el deslizador para establecer la distancia de aviso para la ruta."
                                 style={{ width: '100%', height: 40, marginTop: 10 }}
                                 minimumValue={0}
                                 maximumValue={2000}
@@ -206,8 +222,8 @@ export default function MapaScreen({ navigation }) {
                                     }
                                 }}
 
-                                style={{ marginTop: 40, backgroundColor: '#32CCFE', paddingVertical: 20, borderRadius: 30 }}>
-                                <Text style={{ textAlign: 'center', fontSize: 16, fontWeight: 'bold' }}>Programar ruta</Text>
+                                style={{ marginTop: 40, backgroundColor: '#1A73E8', paddingVertical: 20, borderRadius: 30 }}>
+                                <Text style={{ textAlign: 'center', fontSize: 16, color: 'white', fontWeight: 'bold' }}>Programar ruta</Text>
                             </TouchableOpacity>
                         </View>
                     )

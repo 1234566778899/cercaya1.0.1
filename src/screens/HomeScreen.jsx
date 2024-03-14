@@ -16,9 +16,9 @@ const HomeScreen = ({ navigation }) => {
             headerRight: () => (
                 <TouchableOpacity
                     onPress={() => navigate.navigate('policy')}
-                    style={{ flexDirection: 'row', alignItems: 'center', marginRight: 10 }}>
-                    <MaterialIcons name="policy" size={24} color="black" />
-                    <Text style={{ color: 'black', fontSize: 15, marginLeft: 5 }}>Política de privacidad</Text>
+                    style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#E8F0FE', borderRadius: 5, padding: 10 }}>
+                    <MaterialIcons name="policy" size={24} color="#2972D5" />
+                    <Text style={{ color: '#2972D5', fontWeight: 'bold', fontSize: 15, marginLeft: 5 }}>Política de privacidad</Text>
                 </TouchableOpacity>
             ),
         });
@@ -34,7 +34,8 @@ const HomeScreen = ({ navigation }) => {
     const getPercent = () => {
         const total = getDistance(initialPosition, destination);
         const actual = getDistance(position, destination);
-        return 100 - (actual * 100 / total);
+        const percent = 100 - (actual * 100 / total);
+        return percent < 0 ? 0 : percent
     }
     useEffect(() => {
         Notifications.addNotificationResponseReceivedListener(handleNotificationResponse);
@@ -98,8 +99,8 @@ const HomeScreen = ({ navigation }) => {
             <View style={{ alignItems: 'center', position: 'absolute', bottom: 20, width: '100%', paddingHorizontal: 10 }}>
                 {
                     !programado && (
-                        <TouchableOpacity style={{ backgroundColor: '#32CCFE', width: '100%', paddingVertical: 15, borderRadius: 30 }} onPress={() => navigation.navigate('mapa')} >
-                            <Text style={{ fontSize: 15, textAlign: 'center', fontWeight: 'bold' }}>
+                        <TouchableOpacity style={{ backgroundColor: '#1A73E8', width: '100%', paddingVertical: 15, borderRadius: 30 }} onPress={() => navigation.navigate('mapa')} >
+                            <Text style={{ fontSize: 15, color: 'white', textAlign: 'center', fontWeight: 'bold' }}>
                                 Agregar destino
                             </Text>
                         </TouchableOpacity>
@@ -107,8 +108,8 @@ const HomeScreen = ({ navigation }) => {
                 }
                 {
                     programado && (
-                        <TouchableOpacity style={{ backgroundColor: '#32CCFE', width: '100%', paddingVertical: 15, borderRadius: 30 }} onPress={() => stopTrip()} >
-                            <Text style={{ fontSize: 15, textAlign: 'center', fontWeight: 'bold' }}>Detener viaje</Text>
+                        <TouchableOpacity style={{ backgroundColor: '#1A73E8', width: '100%', paddingVertical: 15, borderRadius: 30 }} onPress={() => stopTrip()} >
+                            <Text style={{ fontSize: 15, textAlign: 'center', color: 'white', fontWeight: 'bold' }}>Detener viaje</Text>
                         </TouchableOpacity>
                     )
                 }
