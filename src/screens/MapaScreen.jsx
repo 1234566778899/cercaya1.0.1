@@ -7,9 +7,11 @@ import * as Location from 'expo-location';
 import Slider from '@react-native-community/slider';
 import { MainContext } from '../contexts/MainScreen'
 import * as Notifications from 'expo-notifications';
+import { useRewardedAd } from 'react-native-google-mobile-ads'
 
 export default function MapaScreen({ navigation }) {
 
+    const { isLoaded, isClosed, load, show } = useRewardedAd('ca-app-pub-7986550598269480~7377300632');
     const { setProgramado, destination, setDestination, setInitialPosition, radio, ruta, setRadio, position, setPosition, region, setLlego, setRegion } = useContext(MainContext);
 
     const requestForegroundPermissions = async () => {
@@ -87,7 +89,7 @@ export default function MapaScreen({ navigation }) {
             longitudeDelta: baseDelta * factor
         }));
     }
-    const startTravel = async () => {
+    const executeTrip = async () => {
         const hasForegroundPermissions = await requestForegroundPermissions();
         if (!hasForegroundPermissions) return;
 
@@ -108,11 +110,15 @@ export default function MapaScreen({ navigation }) {
             Alert.alert('Error', 'Hubo un error al iniciar el viaje. Por favor, inténtalo de nuevo.');
         }
     }
-    const executeTrip = () => {
+    useEffect(() => {
+        load();
+    }, [load]);
 
-        startTravel();
-
-    };
+    useEffect(() => {
+        if (isClosed) {
+            executeTrip();
+        }
+    }, [isClosed, navigation]);
 
     if (!position) {
         return (
@@ -192,7 +198,14 @@ export default function MapaScreen({ navigation }) {
                             />
                             <Text style={{ color: 'white', textAlign: 'center', fontSize: 15 }}>{(radio).toFixed(0)} m</Text>
                             <TouchableOpacity
-                                onPress={() => executeTrip()}
+                                onPress={() => {
+                                    if (isLoaded) {
+                                        show();
+                                    } else {
+                                        executeTrip();
+                                    }
+                                }}
+
                                 style={{ marginTop: 40, backgroundColor: '#32CCFE', paddingVertical: 20, borderRadius: 30 }}>
                                 <Text style={{ textAlign: 'center', fontSize: 16, fontWeight: 'bold' }}>Programar ruta</Text>
                             </TouchableOpacity>

@@ -100,7 +100,7 @@ const HomeScreen = ({ navigation }) => {
                     !programado && (
                         <TouchableOpacity style={{ backgroundColor: '#32CCFE', width: '100%', paddingVertical: 15, borderRadius: 30 }} onPress={() => navigation.navigate('mapa')} >
                             <Text style={{ fontSize: 15, textAlign: 'center', fontWeight: 'bold' }}>
-                                Toca para agregar destino
+                                Agregar destino
                             </Text>
                         </TouchableOpacity>
                     )

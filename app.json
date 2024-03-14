@@ -32,7 +32,7 @@
         }
       },
       "package": "com.carlosordaz.cercaya",
-      "versionCode": 8
+      "versionCode": 9
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -42,6 +42,8 @@
         "projectId": "e4d722ff-630a-4d54-bf1b-d7ac2acd434c"
       }
     }
+  },
+  "react-native-google-mobile-ads": {
+    "android_app_id": "ca-app-pub-7986550598269480~7377300632"
   }
 }
-
