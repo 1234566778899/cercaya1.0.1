@@ -32,7 +32,7 @@
         }
       },
       "package": "com.carlosordaz.cercaya",
-      "versionCode": 9
+      "versionCode": 16
     },
     "web": {
       "favicon": "./assets/favicon.png"

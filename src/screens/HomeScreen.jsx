@@ -16,9 +16,9 @@ const HomeScreen = ({ navigation }) => {
             headerRight: () => (
                 <TouchableOpacity
                     onPress={() => navigate.navigate('policy')}
-                    style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#E8F0FE', borderRadius: 5, padding: 10 }}>
-                    <MaterialIcons name="policy" size={24} color="#2972D5" />
-                    <Text style={{ color: '#2972D5', fontWeight: 'bold', fontSize: 15, marginLeft: 5 }}>Política de privacidad</Text>
+                    style={{ flexDirection: 'row', minHeight: 48, alignItems: 'center', backgroundColor: '#E8F0FE', borderRadius: 5, paddingHorizontal: 10 }}>
+                    <MaterialIcons name="policy" size={24} color="#1D5BA0" />
+                    <Text style={{ color: '#1D5BA0', fontWeight: 'bold', fontSize: 15, marginLeft: 5 }}>Política de privacidad</Text>
                 </TouchableOpacity>
             ),
         });

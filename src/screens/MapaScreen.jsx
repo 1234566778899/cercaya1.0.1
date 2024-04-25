@@ -1,5 +1,5 @@
 import { View, Text, Image, TouchableOpacity, Alert } from 'react-native'
-import React, { useContext, useEffect, useLayoutEffect } from 'react'
+import React, { useContext, useEffect, useLayoutEffect, useState } from 'react'
 import MapView, { Circle, Marker, PROVIDER_GOOGLE } from 'react-native-maps'
 import { customMapStyle } from '../utils/CustomStyle'
 import { Feather, FontAwesome, } from '@expo/vector-icons'
@@ -10,9 +10,10 @@ import * as Notifications from 'expo-notifications';
 import { useRewardedAd } from 'react-native-google-mobile-ads'
 import { getDistance } from 'geolib'
 import { useNavigation } from '@react-navigation/native'
+import ModalPermise from './ModalPermise'
 
 export default function MapaScreen({ navigation }) {
-
+    const [isModal, setIsModal] = useState(true);
     const { isLoaded, isClosed, load, show } = useRewardedAd('ca-app-pub-7986550598269480~7377300632');
     const { setProgramado, destination, setDestination, setInitialPosition, radio, ruta, setRadio, position, setPosition, region, setLlego, setRegion } = useContext(MainContext);
     const navigate = useNavigation();
@@ -22,26 +23,25 @@ export default function MapaScreen({ navigation }) {
             headerRight: () => (
                 destination && <TouchableOpacity
                     onPress={() => navigate.navigate('search')}
-                    style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#E8F0FE', borderRadius: 5, marginRight: 5, paddingVertical: 10, paddingHorizontal: 20 }}>
-                    <Text style={{ color: 'black', fontSize: 15, color: '#2972D5', fontWeight: 'bold', marginLeft: 5 }}>Cancelar</Text>
+                    style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#E8F0FE', borderRadius: 5, marginRight: 5, minHeight: 48, paddingHorizontal: 20 }}>
+                    <Text style={{ color: 'black', fontSize: 15, color: '#1D5BA0', fontWeight: 'bold', marginLeft: 5 }}>Cancelar</Text>
                 </TouchableOpacity>
             ),
         });
     }, [destination]);
-    const requestForegroundPermissions = async () => {
+    const requestPermissions = async () => {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
             Alert.alert('Permiso denegado', 'Se necesita permiso para acceder a la ubicación');
             navigation.goBack();
-        }
-        return true;
-    };
-
-    const requestBackgroundPermissions = async () => {
-        const { status } = await Location.requestBackgroundPermissionsAsync();
-        if (status !== 'granted') {
-            Alert.alert('Permiso denegado', 'Se necesita permiso para acceder a la ubicación en segundo plano');
-            navigation.goBack();
+        } else {
+            const { status } = await Location.requestBackgroundPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permiso denegado', 'Se necesita permiso para acceder a la ubicación en segundo plano');
+                navigation.goBack();
+            } else {
+                getPosition();
+            }
         }
         return true;
     };
@@ -63,28 +63,13 @@ export default function MapaScreen({ navigation }) {
             navigation.goBack();
         }
     }
-    const requestPermissions = async () => {
-        Alert.alert(
-            "Permiso de Ubicación Requerido",
-            "Nuestra aplicación necesita acceso a tu ubicación para proporcionar navegación en tiempo real y alertas de proximidad. ¿Deseas continuar?",
-            [
-                {
-                    text: "No",
-                    onPress: () => navigation.goBack(),
-                    style: "cancel"
-                },
-                {
-                    text: "Sí", onPress: () => {
-                        requestForegroundPermissions();
-                        requestBackgroundPermissions();
-                        getPosition();
-                    }
-                }
-            ]
-        );
-    };
-    useEffect(() => {
+
+    const validateModal = async () => {
+        setIsModal(false);
         requestPermissions();
+    }
+
+    useEffect(() => {
         setDestination(null);
         setLlego(false);
         registerForPushNotificationsAsync();
@@ -95,8 +80,8 @@ export default function MapaScreen({ navigation }) {
     }, [radio]);
 
     const changeRegion = () => {
-        const baseDelta = 0.005; // Valor base para deltas
-        const factor = Math.log10(radio + 1); // Uso de logaritmo para suavizar el crecimiento
+        const baseDelta = 0.005;
+        const factor = Math.log10(radio + 1);
         setRegion(rgn => ({
             ...rgn,
             latitudeDelta: baseDelta * factor,
@@ -104,12 +89,6 @@ export default function MapaScreen({ navigation }) {
         }));
     }
     const executeTrip = async () => {
-        const hasForegroundPermissions = await requestForegroundPermissions();
-        if (!hasForegroundPermissions) return;
-
-        const hasBackgroundPermissions = await requestBackgroundPermissions();
-        if (!hasBackgroundPermissions) return;
-
         const taskName = 'background-location-task';
         if (getDistance(position, destination) <= radio) return alert('Usted se encuentra en el radio de su destino');
         try {
@@ -134,23 +113,30 @@ export default function MapaScreen({ navigation }) {
         }
     }, [isClosed, navigation]);
 
-    if (!position) {
+    if (!position && !isModal) {
         return (
-            <View style={{ flex: 1, justifyContent: 'center' }}>
-                <Text style={{ textAlign: 'center' }}> Cargando..</Text>
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <Text>Cargando...</Text>
             </View>
         )
     }
-    return position && (
+    return (
         <View style={{ flex: 1 }}>
+            {
+                isModal && <ModalPermise setisModal={setIsModal} validateModal={validateModal} />
+            }
             <MapView style={{ width: '100%', height: '100%' }}
-                region={region}
+                region={region.latitude ? region : null}
                 provider={PROVIDER_GOOGLE}
                 customMapStyle={customMapStyle}
             >
-                <Marker coordinate={position}>
-                    <Image source={require('../assets/punto.png')} style={{ width: 50, height: 50 }} />
-                </Marker>
+                {
+                    position && (
+                        <Marker coordinate={position} >
+                            <Image source={require('../assets/punto.png')} style={{ width: 50, height: 50 }} />
+                        </Marker>
+                    )
+                }
                 {destination && (
                     <Circle
                         key={radio}
@@ -172,63 +158,66 @@ export default function MapaScreen({ navigation }) {
                     </Circle>
                 )}
             </MapView>
-            <View style={{
-                backgroundColor: '#202125', position: 'absolute', zIndex: 2, width: '100%', paddingVertical: 30,
-                bottom: 0, paddingHorizontal: 10,
-                borderTopRightRadius: 20, borderTopLeftRadius: 20
-            }}>
-                {
-                    !destination && (
-                        <TouchableOpacity onPress={() => navigation.navigate('search')}>
-                            <View style={{
-                                flexDirection: 'row', alignItems: 'center',
-                                backgroundColor: '#3C4043', paddingHorizontal: 20, paddingVertical: 15, borderRadius: 20
-                            }}>
-                                <Feather name="search" size={30} color="#BDC1C9" />
-                                <Text style={{ color: '#BDC1C9', fontSize: 17, marginLeft: 20 }}>¿A donde vas?</Text>
-                            </View>
-                        </TouchableOpacity>
-                    )
-                }
-                {
-                    destination && (
-                        <View>
-                            <Text style={{ color: 'white', fontSize: 22, fontWeight: 'bold' }}>{ruta ? ruta.name : ''}</Text>
-                            <View
-                                style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', padding: 5, backgroundColor: 'black', width: 90, borderRadius: 10, marginTop: 10 }}>
-                                <FontAwesome name="car" size={15} color="white" />
-                                <Text style={{ color: 'white', marginLeft: 10 }}>3.7Km</Text>
-                            </View>
-                            <Text style={{ color: '#BFC1C5', fontWeight: 'bold', marginTop: 5 }}>{ruta ? ruta.address : ''}</Text>
-                            <Text style={{ marginTop: 40, fontSize: 20, color: 'white' }}>Distancia de aviso</Text>
-                            <Slider
-                                accessibilityLabel="Seleccionar distancia de aviso"
-                                accessibilityHint="Ajusta el deslizador para establecer la distancia de aviso para la ruta."
-                                style={{ width: '100%', height: 40, marginTop: 10 }}
-                                minimumValue={0}
-                                maximumValue={2000}
-                                value={radio}
-                                onValueChange={setRadio}
-                                minimumTrackTintColor="#FFFFFF"
-                                maximumTrackTintColor="#000000"
-                            />
-                            <Text style={{ color: 'white', textAlign: 'center', fontSize: 15 }}>{(radio).toFixed(0)} m</Text>
-                            <TouchableOpacity
-                                onPress={() => {
-                                    if (isLoaded) {
-                                        show();
-                                    } else {
-                                        executeTrip();
-                                    }
-                                }}
-
-                                style={{ marginTop: 40, backgroundColor: '#1A73E8', paddingVertical: 20, borderRadius: 30 }}>
-                                <Text style={{ textAlign: 'center', fontSize: 16, color: 'white', fontWeight: 'bold' }}>Programar ruta</Text>
-                            </TouchableOpacity>
-                        </View>
-                    )
-                }
-            </View>
+            {
+                !isModal && (
+                    <View style={{
+                        backgroundColor: '#202125', position: 'absolute', zIndex: 2, width: '100%', paddingVertical: 30,
+                        bottom: 0, paddingHorizontal: 10,
+                        borderTopRightRadius: 20, borderTopLeftRadius: 20
+                    }}>
+                        {
+                            !destination && (
+                                <TouchableOpacity onPress={() => navigation.navigate('search')}>
+                                    <View style={{
+                                        flexDirection: 'row', alignItems: 'center',
+                                        backgroundColor: '#3C4043', paddingHorizontal: 20, paddingVertical: 15, borderRadius: 20
+                                    }}>
+                                        <Feather name="search" size={30} color="#BDC1C9" />
+                                        <Text style={{ color: '#BDC1C9', fontSize: 17, marginLeft: 20 }}>¿A donde vas?</Text>
+                                    </View>
+                                </TouchableOpacity>
+                            )
+                        }
+                        {
+                            destination && (
+                                <View>
+                                    <Text style={{ color: 'white', fontSize: 22, fontWeight: 'bold' }}>{ruta ? ruta.name : ''}</Text>
+                                    <View
+                                        style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', padding: 5, backgroundColor: 'black', width: 90, borderRadius: 10, marginTop: 10 }}>
+                                        <FontAwesome name="car" size={15} color="white" />
+                                        <Text style={{ color: 'white', marginLeft: 10 }}>3.7Km</Text>
+                                    </View>
+                                    <Text style={{ color: '#BFC1C5', fontWeight: 'bold', marginTop: 5 }}>{ruta ? ruta.address : ''}</Text>
+                                    <Text style={{ marginTop: 40, fontSize: 20, color: 'white' }}>Distancia de aviso</Text>
+                                    <Slider
+                                        accessibilityLabel="Seleccionar distancia de aviso"
+                                        accessibilityHint="Ajusta el deslizador para establecer la distancia de aviso para la ruta."
+                                        style={{ width: '100%', height: 40, marginTop: 10 }}
+                                        minimumValue={0}
+                                        maximumValue={2000}
+                                        value={radio}
+                                        onValueChange={setRadio}
+                                        minimumTrackTintColor="#FFFFFF"
+                                        maximumTrackTintColor="#000000"
+                                    />
+                                    <Text style={{ color: 'white', textAlign: 'center', fontSize: 15 }}>{(radio).toFixed(0)} m</Text>
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            if (isLoaded) {
+                                                show();
+                                            } else {
+                                                executeTrip();
+                                            }
+                                        }}
+                                        style={{ marginTop: 40, backgroundColor: '#1A73E8', paddingVertical: 15, borderRadius: 30 }}>
+                                        <Text style={{ textAlign: 'center', fontSize: 16, color: 'white', fontWeight: 'bold' }}>Programar ruta</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )
+                        }
+                    </View>
+                )
+            }
         </View>
     )
 }
