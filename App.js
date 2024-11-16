@@ -1,42 +1,22 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { NavigationContainer } from '@react-navigation/native';
-import HomeScreen from './src/screens/HomeScreen';
 import MapaScreen from './src/screens/MapaScreen';
-import { MainScreen } from './src/contexts/MainScreen';
 import SearchScreen from './src/screens/SearchScreen';
-import PolicyScreen from './src/screens/PolicyScreen';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import LoginScreen from './src/screens/LoginScreen';
+import RegisterScreen from './src/screens/RegisterScreen';
 
 const Stack = createNativeStackNavigator();
 export default function App() {
 
-  const [isFirstLaunch, setIsFirstLaunch] = useState(null);
-
-  useEffect(() => {
-    AsyncStorage.getItem('policyPermited').then(value => {
-      if (!value) {
-        setIsFirstLaunch(true);
-      } else {
-        setIsFirstLaunch(false);
-      }
-    });
-  }, []);
-
-  if (isFirstLaunch === null) {
-    return null;
-  }
   return (
-    <MainScreen>
-      <NavigationContainer >
-        <Stack.Navigator initialRouteName={isFirstLaunch ? 'policy' : 'home'}>
-          <Stack.Screen name='home' component={HomeScreen} options={{ title: 'CercaYa' }} />
-          <Stack.Screen name='mapa' component={MapaScreen} options={{ title: 'Escoger ruta' }} />
-          <Stack.Screen name='search' component={SearchScreen} options={{ title: 'Buscar ruta' }} />
-          <Stack.Screen name='policy' component={PolicyScreen} options={{ title: 'Acerca de la aplicación' }} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </MainScreen>
+    <NavigationContainer >
+      <Stack.Navigator >
+        <Stack.Screen name='login' component={LoginScreen} options={{ title: 'Login' }} />
+        <Stack.Screen name='register' component={RegisterScreen} options={{ title: 'Registro' }} />
+        <Stack.Screen name='home' component={MapaScreen} options={{ title: 'Escoger ruta' }} />
+        <Stack.Screen name='search' component={SearchScreen} options={{ title: 'Buscar ruta' }} />
+      </Stack.Navigator>
+    </NavigationContainer>
   )
 }

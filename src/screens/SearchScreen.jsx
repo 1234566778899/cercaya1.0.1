@@ -1,16 +1,13 @@
 import { View, Text, TextInput, TouchableOpacity } from 'react-native'
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Feather, FontAwesome5 } from '@expo/vector-icons'
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { MainContext } from '../contexts/MainScreen';
 import { CONFIG } from '../../config';
 
 export default function SearchScreen({ navigation }) {
     const [results, setResults] = useState([]);
     const [recientes, setRecientes] = useState([]);
-    const { setDestination, position, radio, setRegion, setRuta } = useContext(MainContext);
-
     const saveReciente = async (place) => {
         let aux = [place, ...recientes].slice(0, 6);
         await AsyncStorage.setItem('places', JSON.stringify(aux));
@@ -29,12 +26,12 @@ export default function SearchScreen({ navigation }) {
 
         const requestData = {
             input: value,
-            locationBias: {
-                circle: {
-                    center: position,
-                    radius: 20000.0
-                }
-            },
+            // locationBias: {
+            //     circle: {
+            //         center: position,
+            //         radius: 20000.0
+            //     }
+            // },
             languageCode: 'es'
         };
 
