@@ -69,6 +69,7 @@ export default function SearchScreen({ navigation }) {
 
     const positionSaved = (place) => {
         const { latitude, longitude, name, address } = place;
+        console.log(place)
         setDestination({ longitude, latitude, name, address });
         navigation.navigate('home');
     }
