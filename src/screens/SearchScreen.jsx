@@ -1,13 +1,16 @@
 import { View, Text, TextInput, TouchableOpacity } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { Feather, FontAwesome5 } from '@expo/vector-icons'
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CONFIG } from '../../config';
+import { MainContext } from '../contexts/MainContextScreen';
 
 export default function SearchScreen({ navigation }) {
     const [results, setResults] = useState([]);
     const [recientes, setRecientes] = useState([]);
+    const { position, setDestination } = useContext(MainContext);
+
     const saveReciente = async (place) => {
         let aux = [place, ...recientes].slice(0, 6);
         await AsyncStorage.setItem('places', JSON.stringify(aux));
@@ -21,17 +24,18 @@ export default function SearchScreen({ navigation }) {
     useEffect(() => {
         getRecientes();
     }, [])
-    getSites = (value) => {
+
+    const getSites = (value) => {
         if (value == "" || value.trim() == "" || value == null) return;
 
         const requestData = {
             input: value,
-            // locationBias: {
-            //     circle: {
-            //         center: position,
-            //         radius: 20000.0
-            //     }
-            // },
+            locationBias: {
+                circle: {
+                    center: position,
+                    radius: 20000.0
+                }
+            },
             languageCode: 'es'
         };
 
@@ -55,31 +59,18 @@ export default function SearchScreen({ navigation }) {
                 const { name, formatted_address, geometry } = response.data.result;
                 const { lat, lng } = geometry.location;
                 setDestination({ longitude: lng, latitude: lat });
-                setRuta({ latitude: lat, longitude: lng, name, address: formatted_address });
                 saveReciente({ latitude: lat, longitude: lng, name, address: formatted_address });
-                changeRegion(lat, lng);
-                navigation.navigate('mapa');
+                navigation.navigate('home');
             })
             .catch(error => {
                 console.log(error);
             })
     }
-    const changeRegion = (lat, lng) => {
-        const baseDelta = 0.005;
-        const factor = Math.log10(radio + 1);
-        setRegion({
-            latitude: lat - 0.004,
-            longitude: lng,
-            latitudeDelta: baseDelta * factor,
-            longitudeDelta: baseDelta * factor
-        });
-    }
+
     const positionSaved = (place) => {
         const { latitude, longitude, name, address } = place;
-        setDestination({ longitude, latitude });
-        setRuta({ latitude, longitude, name, address });
-        changeRegion(latitude, longitude);
-        navigation.navigate('mapa');
+        setDestination({ longitude, latitude, name, address });
+        navigation.navigate('home');
     }
 
     return (

@@ -1,5 +1,6 @@
 {
   "expo": {
+    "newArchEnabled": true,
     "name": "cercaya",
     "slug": "cercaya",
     "version": "1.0.3",
@@ -42,8 +43,5 @@
         "projectId": "e4d722ff-630a-4d54-bf1b-d7ac2acd434c"
       }
     }
-  },
-  "react-native-google-mobile-ads": {
-    "android_app_id": "ca-app-pub-7986550598269480~7377300632"
   }
 }

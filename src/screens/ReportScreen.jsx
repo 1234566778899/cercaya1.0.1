@@ -9,12 +9,14 @@ import { CONFIG } from '../../config';
 import polyline from '@mapbox/polyline';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { getDistance } from 'geolib'; // Importar correctamente getDistance desde geolib
-import { dangerPlaces } from '../dangerPlaces'; // Asegúrate de ajustar la ruta según tu estructura de carpetas
+import { getDistance } from 'geolib';
+import { dangerPlaces } from '../dangerPlaces';
 
 export default function MapaScreen() {
     const { setPosition, position, destination } = useContext(MainContext);
-    const [routeCoords, setRouteCoords] = useState([]);
+    const [routes, setRoutes] = useState([]);
+    const [safeRoutes, setSafeRoutes] = useState([]);
+    const [dangerRoutes, setDangerRoutes] = useState([]);
     const [menuVisible, setMenuVisible] = useState(false);
     const [dangerMarkers, setDangerMarkers] = useState([]);
     const mapRef = useRef(null);
@@ -32,6 +34,7 @@ export default function MapaScreen() {
             const { latitude, longitude } = location.coords;
             setPosition({ latitude, longitude });
         } catch (error) {
+            console.error('Error al obtener la posición:', error);
             navigation.goBack();
         }
     };
@@ -46,38 +49,74 @@ export default function MapaScreen() {
         const origin = `${position.latitude},${position.longitude}`;
         const dest = `${destination.latitude},${destination.longitude}`;
         const apiKey = CONFIG.apiKey;
-        const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${dest}&key=${apiKey}`;
+        const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${dest}&alternatives=true&key=${apiKey}`;
 
         try {
             const response = await axios.get(url);
             if (response.data.routes && response.data.routes.length) {
-                const points = polyline.decode(response.data.routes[0].overview_polyline.points);
-                const routeCoordinates = points.map(([latitude, longitude]) => ({ latitude, longitude }));
-                setRouteCoords(routeCoordinates);
+                const decodedRoutes = response.data.routes.map(route => {
+                    if (route.overview_polyline && route.overview_polyline.points) {
+                        const points = polyline.decode(route.overview_polyline.points);
+                        const routeCoordinates = points.map(([latitude, longitude]) => ({ latitude, longitude }));
+                        return routeCoordinates;
+                    } else {
+                        console.warn('Ruta sin polyline:', route);
+                        return [];
+                    }
+                }).filter(route => route.length > 0); // Filtra rutas vacías
+                setRoutes(decodedRoutes);
+            } else {
+                console.warn('No se encontraron rutas en la respuesta de la API');
             }
         } catch (error) {
             console.error('Error al obtener la ruta:', error);
         }
     };
+    const evaluateRoutes = () => {
+        const threshold = 500;
+        const safe = [];
+        const dangerous = [];
 
-    // Función para calcular los puntos de peligro cercanos a la ruta
+        routes.forEach(route => {
+            const isSafe = !dangerPlaces.some(dangerPoint => {
+                return route.some(routePoint => {
+                    const distance = getDistance(
+                        { latitude: dangerPoint.latitude, longitude: dangerPoint.longitude },
+                        { latitude: routePoint.latitude, longitude: routePoint.longitude }
+                    );
+                    console.log(distance)
+                    return distance <= threshold;
+                });
+            });
+            if (isSafe) {
+                safe.push(route);
+            } else {
+                dangerous.push(route);
+            }
+        });
+
+        setSafeRoutes(safe);
+        setDangerRoutes(dangerous);
+    };
+
     const calculateDangerMarkers = () => {
-        if (routeCoords.length === 0) {
+        if (routes.length === 0) {
             setDangerMarkers([]);
             return;
         }
         const threshold = 500;
         const filteredDangerPlaces = dangerPlaces
-            .map(([latitude, longitude]) => ({ latitude, longitude }))
+            .map(({ latitude, longitude }) => ({ latitude, longitude }))
             .filter((dangerPoint) => {
-                const minDistance = routeCoords.reduce((min, routePoint) => {
-                    const distance = getDistance(
-                        { latitude: dangerPoint.latitude, longitude: dangerPoint.longitude },
-                        { latitude: routePoint.latitude, longitude: routePoint.longitude }
-                    );
-                    return distance < min ? distance : min;
-                }, Infinity);
-                return minDistance <= threshold;
+                return routes.some(route => {
+                    return route.some(routePoint => {
+                        const distance = getDistance(
+                            { latitude: dangerPoint.latitude, longitude: dangerPoint.longitude },
+                            { latitude: routePoint.latitude, longitude: routePoint.longitude }
+                        );
+                        return distance <= threshold;
+                    });
+                });
             });
         setDangerMarkers(filteredDangerPlaces);
     };
@@ -93,19 +132,24 @@ export default function MapaScreen() {
     }, [destination]);
 
     useEffect(() => {
-        if (routeCoords.length > 0) {
+        if (routes.length > 0) {
+            evaluateRoutes();
+            console.log('llego')
             calculateDangerMarkers();
         }
-    }, [routeCoords]);
+    }, [routes]);
 
     useEffect(() => {
-        if (routeCoords.length > 0 && mapRef.current) {
-            mapRef.current.fitToCoordinates(routeCoords, {
-                edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
-                animated: true,
-            });
+        if ((safeRoutes.length > 0 || dangerRoutes.length > 0) && mapRef.current) {
+            const allCoords = [...safeRoutes, ...dangerRoutes].flat();
+            if (allCoords.length > 0) {
+                mapRef.current.fitToCoordinates(allCoords, {
+                    edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+                    animated: true,
+                });
+            }
         }
-    }, [routeCoords]);
+    }, [safeRoutes, dangerRoutes]);
 
     if (!position) {
         return (
@@ -142,23 +186,32 @@ export default function MapaScreen() {
                     longitudeDelta: 0.004
                 }}
             >
-                {routeCoords.length > 0 && (
+                {safeRoutes.map((route, index) => (
                     <Polyline
-                        coordinates={routeCoords}
+                        key={`safe-route-${index}`}
+                        coordinates={route}
                         strokeWidth={4}
-                        strokeColor="blue"
+                        strokeColor="green"
                     />
-                )}
+                ))}
+                {dangerRoutes.map((route, index) => (
+                    <Polyline
+                        key={`danger-route-${index}`}
+                        coordinates={route}
+                        strokeWidth={4}
+                        strokeColor="red"
+                    />
+                ))}
                 {destination && (
                     <Marker
                         coordinate={destination}
-                        title={destination.name || 'Destino'}
-                        description={destination.address || ''}
+                        title={destination.name ? destination.name.toString() : 'Destino'}
+                        description={destination.address ? destination.address.toString() : ''}
                     />
                 )}
                 {dangerMarkers.map((marker, index) => (
                     <Circle
-                        key={`danger-circle-${index}`}
+                        key={`danger-circle-${index}`} // Asegúrate de que los backticks estén correctos
                         center={marker}
                         radius={100} // Radio en metros
                         strokeColor="rgba(255, 0, 0, 0.8)" // Color del borde del círculo

@@ -1,3 +1,4 @@
+// LoginScreen.js
 import React, { useState } from 'react';
 import {
     View,
@@ -5,23 +6,39 @@ import {
     TouchableOpacity,
     Text,
     StyleSheet,
-    Image,
     KeyboardAvoidingView,
     Platform,
+    Alert,
 } from 'react-native';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase';
 
 export default function LoginScreen({ navigation }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+
+    const handleLogin = () => {
+        if (email === '' || password === '') {
+            Alert.alert('Campos Vacíos', 'Por favor, rellena todos los campos.');
+            return;
+        }
+
+        signInWithEmailAndPassword(auth, email, password)
+            .then(() => {
+                navigation.navigate('home');
+            })
+            .catch((error) => {
+                console.error(error);
+                Alert.alert('Error de Inicio de Sesión', error.message);
+            });
+    };
 
     return (
         <KeyboardAvoidingView
             style={styles.container}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-
             <Text style={styles.title}>Iniciar sesión</Text>
-            {/* Campo de correo electrónico */}
             <TextInput
                 style={styles.input}
                 placeholder="Correo electrónico"
@@ -32,7 +49,6 @@ export default function LoginScreen({ navigation }) {
                 onChangeText={setEmail}
             />
 
-            {/* Campo de contraseña */}
             <TextInput
                 style={styles.input}
                 placeholder="Contraseña"
@@ -42,25 +58,17 @@ export default function LoginScreen({ navigation }) {
                 value={password}
                 onChangeText={setPassword}
             />
-
-            {/* Botón de inicio de sesión */}
-            <TouchableOpacity
-                style={styles.button}
-                onPress={() => {
-                    navigation.navigate('home')
-                }}
-            >
+            <TouchableOpacity style={styles.button} onPress={handleLogin}>
                 <Text style={styles.buttonText}>Iniciar sesión</Text>
             </TouchableOpacity>
 
-            {/* Enlace para registro o recuperar contraseña */}
             <View style={styles.footer}>
                 <Text style={styles.footerText}>
                     ¿No tienes una cuenta?{' '}
                     <Text
                         style={styles.footerLink}
                         onPress={() => {
-                            navigation.navigate('register')
+                            navigation.navigate('register');
                         }}
                     >
                         Regístrate
@@ -84,12 +92,6 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#333',
         marginBottom: 30,
-    },
-    logo: {
-        width: 120,
-        height: 120,
-        marginBottom: 40,
-        resizeMode: 'contain',
     },
     input: {
         width: '100%',
@@ -115,7 +117,7 @@ const styles = StyleSheet.create({
         shadowColor: '#5568FE',
         shadowOpacity: 0.5,
         shadowRadius: 10,
-        elevation: 5, // Para Android
+        elevation: 5,
     },
     buttonText: {
         color: '#FFFFFF',
@@ -132,5 +134,6 @@ const styles = StyleSheet.create({
     footerLink: {
         color: '#5568FE',
         fontWeight: 'bold',
+        paddingVertical: 20,
     },
 });
