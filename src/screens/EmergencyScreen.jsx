@@ -40,8 +40,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         paddingVertical: 15,
-        borderBottomColor: '#ccc',
-        borderBottomWidth: 1,
+        backgroundColor: '#F7F8F9',
+        marginTop: 15,
+        paddingHorizontal: 10,
+        borderRadius: 5,
+        elevation: 2
     },
     name: {
         fontSize: 18,

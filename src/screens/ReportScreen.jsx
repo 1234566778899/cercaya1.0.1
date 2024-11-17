@@ -142,17 +142,17 @@ export default function ReportScreen({ navigation }) {
     return (
         <View style={styles.container}>
             <View style={styles.formContainer}>
-                <Text style={styles.formTitle}>Registrar Denuncia</Text>
+                <Text style={[styles.formTitle, { color: 'black' }]}>Registrar Denuncia</Text>
 
                 <TextInput
-                    style={styles.input}
+                    style={{ paddingVertical: 20, paddingHorizontal: 15, borderColor: '#EEF1F7', borderWidth: 1, marginTop: 20, fontSize: 15, backgroundColor: '#F7F8F9' }}
                     placeholder="Nombre"
                     value={name}
                     onChangeText={setName}
                 />
 
                 <TextInput
-                    style={styles.input}
+                    style={{ paddingVertical: 20, paddingHorizontal: 15, borderColor: '#EEF1F7', borderWidth: 1, marginTop: 10, fontSize: 15, backgroundColor: '#F7F8F9' }}
                     placeholder="DNI"
                     value={dni}
                     onChangeText={setDni}
@@ -160,14 +160,14 @@ export default function ReportScreen({ navigation }) {
                 />
 
                 <TextInput
-                    style={styles.input}
+                    style={{ paddingVertical: 20, paddingHorizontal: 15, borderColor: '#EEF1F7', borderWidth: 1, marginTop: 10, fontSize: 15, backgroundColor: '#F7F8F9' }}
                     placeholder="Dirección"
                     value={address}
                     onChangeText={setAddress}
                 />
 
                 <TextInput
-                    style={[styles.input, styles.textArea]}
+                    style={{ paddingVertical: 20, paddingHorizontal: 15, borderColor: '#EEF1F7', borderWidth: 1, marginTop: 20, fontSize: 15, backgroundColor: '#F7F8F9', height: 100 }}
                     placeholder="Descripción de la denuncia"
                     value={description}
                     onChangeText={setDescription}
@@ -175,8 +175,12 @@ export default function ReportScreen({ navigation }) {
                     numberOfLines={4}
                 />
 
-                <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-                    <Text style={styles.buttonText}>{isSending ? 'Enviando..' : 'Enviar Denuncia'}</Text>
+                <TouchableOpacity
+                    style={{ backgroundColor: '#1E232C', paddingVertical: 20, marginTop: 10, borderRadius: 5 }}
+                    onPress={handleSubmit}>
+                    <Text
+                        style={{ textAlign: 'center', color: 'white', fontWeight: 'bold' }}
+                    >{isSending ? 'Enviando..' : 'Enviar Denuncia'}</Text>
                 </TouchableOpacity>
             </View>
 
@@ -185,7 +189,7 @@ export default function ReportScreen({ navigation }) {
 
             {/* Lista de Denuncias */}
             <View style={styles.listContainer}>
-                <Text style={styles.listTitle}>Todas las Denuncias</Text>
+                <Text style={[styles.listTitle, { color: 'black' }]}>Todas las Denuncias</Text>
                 {loading ? (
                     <ActivityIndicator size="large" color="#5568FE" />
                 ) : reports.length === 0 ? (

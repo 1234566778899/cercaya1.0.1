@@ -44,12 +44,12 @@ export default function RegisterScreen({ navigation }) {
 
     return (
         <KeyboardAvoidingView
-            style={styles.container}
+            style={{ flex: 1, backgroundColor: 'white', padding: 20 }}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-            <Text style={styles.title}>Regístrate</Text>
+            <Text style={{ fontSize: 30, fontWeight: 'bold', marginTop: 30 }}>Hello! Register to get started</Text>
             <TextInput
-                style={styles.input}
+                style={{ paddingVertical: 20, paddingHorizontal: 15, borderColor: '#EEF1F7', borderWidth: 1, marginTop: 40, fontSize: 15, backgroundColor: '#F7F8F9' }}
                 placeholder="Correo electrónico"
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -59,7 +59,7 @@ export default function RegisterScreen({ navigation }) {
             />
 
             <TextInput
-                style={styles.input}
+                style={{ paddingVertical: 20, paddingHorizontal: 15, borderColor: '#EEF1F7', borderWidth: 1, marginTop: 20, fontSize: 15, backgroundColor: '#F7F8F9' }}
                 placeholder="Contraseña"
                 secureTextEntry
                 autoCapitalize="none"
@@ -69,7 +69,7 @@ export default function RegisterScreen({ navigation }) {
             />
 
             <TextInput
-                style={styles.input}
+                style={{ paddingVertical: 20, paddingHorizontal: 15, borderColor: '#EEF1F7', borderWidth: 1, marginTop: 20, fontSize: 15, backgroundColor: '#F7F8F9' }}
                 placeholder="Confirmar Contraseña"
                 secureTextEntry
                 autoCapitalize="none"
@@ -78,82 +78,24 @@ export default function RegisterScreen({ navigation }) {
                 onChangeText={setConfirmPassword}
             />
 
-            <TouchableOpacity style={styles.button} onPress={handleRegister}>
-                <Text style={styles.buttonText}>Registrarse</Text>
+            <TouchableOpacity
+                style={{ backgroundColor: '#1E232C', paddingVertical: 20, marginTop: 30, borderRadius: 5 }}
+                onPress={handleRegister}>
+                <Text style={{ textAlign: 'center', color: 'white', fontWeight: 'bold' }}>Registrarse</Text>
             </TouchableOpacity>
 
-            <View style={styles.footer}>
-                <Text style={styles.footerText}>
-                    ¿Ya tienes una cuenta?{' '}
-                    <Text
-                        style={styles.footerLink}
-                        onPress={() => {
-                            navigation.navigate('login');
-                        }}
-                    >
+            <TouchableOpacity
+                onPress={() => {
+                    navigation.navigate('login');
+                }}
+                style={{ paddingVertical: 20, marginTop: 30 }}>
+                <Text style={{ textAlign: 'center', fontWeight: 'bold' }}>
+                    ¿Ya tienes una cuenta?{'  '}
+                    <Text style={{ color: '#35C2C1', textDecorationLine: 'underline' }}>
                         Inicia sesión
                     </Text>
                 </Text>
-            </View>
+            </TouchableOpacity>
         </KeyboardAvoidingView>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#eee',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 30,
-    },
-    title: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 30,
-    },
-    input: {
-        width: '100%',
-        height: 50,
-        backgroundColor: '#FFFFFF',
-        borderRadius: 10,
-        paddingHorizontal: 15,
-        marginBottom: 15,
-        fontSize: 16,
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-        elevation: 5,
-    },
-    button: {
-        width: '100%',
-        height: 50,
-        backgroundColor: '#5568FE',
-        borderRadius: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginTop: 10,
-        shadowColor: '#5568FE',
-        shadowOpacity: 0.5,
-        shadowRadius: 10,
-        elevation: 5,
-    },
-    buttonText: {
-        color: '#FFFFFF',
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    footer: {
-        marginTop: 25,
-    },
-    footerText: {
-        color: '#999',
-        fontSize: 14,
-    },
-    footerLink: {
-        color: '#5568FE',
-        fontWeight: 'bold',
-        paddingVertical: 20,
-    },
-});
